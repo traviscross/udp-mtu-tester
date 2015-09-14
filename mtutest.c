@@ -18,22 +18,31 @@ int err(char *m) {
   return 1;
 }
 
+int pmtudisc_val(char *s) {
+  if (!strcmp(s,"want")) return IP_PMTUDISC_WANT;
+  if (!strcmp(s,"dont")) return IP_PMTUDISC_DONT;
+  if (!strcmp(s,"do")) return IP_PMTUDISC_DO;
+  if (!strcmp(s,"probe")) return IP_PMTUDISC_PROBE;
+  return -1;
+}
+
 int main(int argc, char **argv) {
   int udp = socket(AF_INET, SOCK_DGRAM, 0);
-  int val = IP_PMTUDISC_DONT;
   struct sockaddr_in addr;
   char buf[maxbuf];
-  if (argc < 7) {
-    fprintf(stderr, "usage: %s ip port startsize maxsize step delay_ms\n", argv[0]);
+  if (argc < 8) {
+    fprintf(stderr, "usage: %s ip port want|dont|do|probe startsize maxsize step delay_ms\n", argv[0]);
     return 1;
   }
   char *ip = argv[1];
   int port = atoi(argv[2]);
-  int startsize = atoi(argv[3]);
-  int maxsize = atoi(argv[4]);
-  int step = atoi(argv[5]);
-  int delay_ms = atoi(argv[6]);
+  int pmtudisc_arg = pmtudisc_val(argv[3]);
+  int startsize = atoi(argv[4]);
+  int maxsize = atoi(argv[5]);
+  int step = atoi(argv[6]);
+  int delay_ms = atoi(argv[7]);
   if (port < 0 || port > 65535) return err("invalid port");
+  if (pmtudisc_arg < 0) return err("invalid pmtudisc type (want|dont|do|probe)");
   if (startsize < udp_hlen) return err("startsize must be at least 28 bytes (UDP header length)");
   if (maxsize > maxbuf) return err("maxsize must be less than 2^16-1");
   if (startsize > maxsize) return err("startsize must be less than maxsize");
@@ -44,7 +53,7 @@ int main(int argc, char **argv) {
   addr.sin_family = AF_INET;
   inet_pton(addr.sin_family, ip, &addr.sin_addr);
   addr.sin_port = htons(port);
-  setsockopt(udp, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val));
+  setsockopt(udp, IPPROTO_IP, IP_MTU_DISCOVER, &pmtudisc_arg, sizeof(int));
   int i, r;
   for (i=startsize-udp_hlen; i <= maxsize-udp_hlen; i+=step) {
     r=sendto(udp, buf, i, 0, (struct sockaddr*)&addr, sizeof(addr));
