@@ -57,7 +57,14 @@ int main(int argc, char **argv) {
   int i, r;
   for (i=startsize-udp_hlen; i <= maxsize-udp_hlen; i+=step) {
     r=sendto(udp, buf, i, 0, (struct sockaddr*)&addr, sizeof(addr));
-    fprintf(stderr, "sent to %s:%d: %d bytes (%d bytes UDP)\n", ip, port, r+udp_hlen, r);
+    if (r == -1) {
+      char ebuf[1024];
+      strerror_r(errno, ebuf, sizeof(ebuf));
+      fprintf(stderr, "not sent to %s:%d: %d bytes (%d bytes UDP) | error: %s\n",
+              ip, port, i+udp_hlen, i, ebuf);
+    } else {
+      fprintf(stderr, "sent to %s:%d: %d bytes (%d bytes UDP)\n", ip, port, r+udp_hlen, r);
+    }
     struct timespec req, rem;
     req.tv_sec = delay_ms / 1000;
     req.tv_nsec = (delay_ms % 1000) * 1000000;
