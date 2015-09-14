@@ -17,8 +17,8 @@ int main(int argc, char **argv) {
   int val = IP_PMTUDISC_DONT;
   struct sockaddr_in addr;
   char buf[2048];
-  if (argc < 6) {
-    fprintf(stderr, "usage: %s ip port startsize maxsize step\n", argv[0]);
+  if (argc < 7) {
+    fprintf(stderr, "usage: %s ip port startsize maxsize step delay_ms\n", argv[0]);
     return 1;
   }
   char *ip = argv[1];
@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
   int startsize = atoi(argv[3]);
   int maxsize = atoi(argv[4]);
   int step = atoi(argv[5]);
+  int delay_ms = atoi(argv[6]);
   memset(&addr, 0, sizeof(addr));
   memset(buf, 0, sizeof(buf));
   addr.sin_family = AF_INET;
@@ -37,7 +38,8 @@ int main(int argc, char **argv) {
     r=sendto(udp, buf, i, 0, (struct sockaddr*)&addr, sizeof(addr));
     fprintf(stderr, "sent to %s:%d: %d bytes (%d bytes UDP)\n", ip, port, r+udp_hlen, r);
     struct timespec req, rem;
-    req.tv_sec = 0; req.tv_nsec = 20000000;
+    req.tv_sec = delay_ms / 1000;
+    req.tv_nsec = (delay_ms % 1000) * 1000000;
     while (nanosleep(&req, &rem) == -1 && errno == EINTR)
       memcpy(&req, &rem, sizeof(struct timespec));
   }
