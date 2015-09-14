@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
   int udp = socket(AF_INET, SOCK_DGRAM, 0);
   int val = IP_PMTUDISC_DONT;
   struct sockaddr_in addr;
-  char buf[2048];
+  char buf[65535];
   if (argc < 7) {
     fprintf(stderr, "usage: %s ip port startsize maxsize step delay_ms\n", argv[0]);
     return 1;
