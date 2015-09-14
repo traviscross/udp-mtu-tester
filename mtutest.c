@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <errno.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -32,6 +34,10 @@ int main(int argc, char **argv) {
   for (i=startsize-28; i <= maxsize-28; i+=step) {
     r=sendto(udp, buf, i, 0, (struct sockaddr*)&addr, sizeof(addr));
     fprintf(stderr, "sent to %s:%d: %d bytes (%d bytes UDP)\n", ip, port, r+28, r);
+    struct timespec req, rem;
+    req.tv_sec = 0; req.tv_nsec = 20000000;
+    while (nanosleep(&req, &rem) == -1 && errno == EINTR)
+      memcpy(&req, &rem, sizeof(struct timespec));
   }
   return 0;
 }
