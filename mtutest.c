@@ -13,12 +13,15 @@ int main(int argc, char **argv) {
   int val = IP_PMTUDISC_DONT;
   struct sockaddr_in addr;
   char buf[2048];
-  if (argc < 3) {
-    fprintf(stderr, "usage: %s ip port\n", argv[0]);
+  if (argc < 6) {
+    fprintf(stderr, "usage: %s ip port startsize maxsize step\n", argv[0]);
     return 1;
   }
   char *ip = argv[1];
   int port = atoi(argv[2]);
+  int startsize = atoi(argv[3]);
+  int maxsize = atoi(argv[4]);
+  int step = atoi(argv[5]);
   memset(&addr, 0, sizeof(addr));
   memset(buf, 0, sizeof(buf));
   addr.sin_family = AF_INET;
@@ -26,7 +29,7 @@ int main(int argc, char **argv) {
   addr.sin_port = htons(port);
   setsockopt(udp, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val));
   int i, r;
-  for (i=1400-28; i <= 1600-28; i+=200) {
+  for (i=startsize-28; i <= maxsize-28; i+=step) {
     r=sendto(udp, buf, i, 0, (struct sockaddr*)&addr, sizeof(addr));
     fprintf(stderr, "sendto: %d\n", r);
   }
