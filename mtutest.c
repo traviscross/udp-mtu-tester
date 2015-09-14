@@ -10,6 +10,8 @@
 #include <netinet/ip.h>
 #include <netinet/udp.h>
 
+static const int udp_hlen = 28;
+
 int main(int argc, char **argv) {
   int udp = socket(AF_INET, SOCK_DGRAM, 0);
   int val = IP_PMTUDISC_DONT;
@@ -31,9 +33,9 @@ int main(int argc, char **argv) {
   addr.sin_port = htons(port);
   setsockopt(udp, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val));
   int i, r;
-  for (i=startsize-28; i <= maxsize-28; i+=step) {
+  for (i=startsize-udp_hlen; i <= maxsize-udp_hlen; i+=step) {
     r=sendto(udp, buf, i, 0, (struct sockaddr*)&addr, sizeof(addr));
-    fprintf(stderr, "sent to %s:%d: %d bytes (%d bytes UDP)\n", ip, port, r+28, r);
+    fprintf(stderr, "sent to %s:%d: %d bytes (%d bytes UDP)\n", ip, port, r+udp_hlen, r);
     struct timespec req, rem;
     req.tv_sec = 0; req.tv_nsec = 20000000;
     while (nanosleep(&req, &rem) == -1 && errno == EINTR)
