@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
   int i, r;
   for (i=startsize-28; i <= maxsize-28; i+=step) {
     r=sendto(udp, buf, i, 0, (struct sockaddr*)&addr, sizeof(addr));
-    fprintf(stderr, "sendto: %d\n", r);
+    fprintf(stderr, "sent to %s:%d: %d bytes (%d bytes UDP)\n", ip, port, r+28, r);
   }
   return 0;
 }
